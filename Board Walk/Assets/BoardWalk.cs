@@ -344,16 +344,29 @@ public class BoardWalk : MonoBehaviour {
    }
 
    IEnumerator SolveAnimation () {
+      string[] Colors = {
+         "783f04",
+         "76a5af",
+         "ff00ff",
+         "ff9900",
+         "ff0000",
+         "ffff00",
+         "33ac01",
+         "1155cc"
+      };
       while (true) {
-         for (int i = 0; i < 6; i++) {
-            SubmissionTexts[i].color = new Color32(255, 255, 255, 255);
-            yield return new WaitForSeconds(.1f);
-         }
-         for (int i = 0; i < 6; i++) {
-            SubmissionTexts[i].color = new Color32(0, 255, 0, 255);
-            yield return new WaitForSeconds(.1f);
+         for (int j = 0; j < 8; j++) {
+            for (int i = 0; i < 6; i++) {
+               SubmissionTexts[i].color = new Color32((byte) HexToDecimal(Colors[j][0], Colors[j][1]), (byte) HexToDecimal(Colors[j][2], Colors[j][3]), (byte) HexToDecimal(Colors[j][4], Colors[j][5]), 255);
+               yield return new WaitForSeconds(.1f);
+            }
          }
       }
+   }
+
+   int HexToDecimal (char First, char Second) {
+      string Hex = "0123456789ABCDEF";
+      return Array.IndexOf(Hex.ToCharArray(), First) * 16 + Array.IndexOf(Hex.ToCharArray(), Second);
    }
 
    void ScreenPress () {
@@ -534,7 +547,7 @@ public class BoardWalk : MonoBehaviour {
       if (ConsecuativeDoubles == 3) { //Leave this for later
          ConsecuativeDoubles %= 3;
          Debug.LogFormat("[The Board Walk #{0}] Uh oh. You rolled three doubles.", moduleId);
-         Jail();
+         Debt += Jail();
          return;
       }
       CurrentPosition += Left + Right;
@@ -607,11 +620,10 @@ public class BoardWalk : MonoBehaviour {
             return Go();
          case 1:
             Debug.LogFormat("[The Board Walk #{0}] You have landed on Community Chest.", moduleId);
-            CommunityChest();
-            return 0;
+            return CommunityChest();
          case 2:
             if (Token == 6) {
-               Debug.LogFormat("[The Board Walk #{0}] You have landed on Luxury Tax, but you don't pay anything.", moduleId);
+               Debug.LogFormat("[The Board Walk #{0}] You have landed on Income Tax, but you don't pay anything.", moduleId);
                return 0;
             }
             Debug.LogFormat("[The Board Walk #{0}] You have landed on Income Tax. You have to pay $200.", moduleId);
@@ -668,8 +680,7 @@ public class BoardWalk : MonoBehaviour {
                return 4 * (DieRolls.Last()[0] + DieRolls.Last()[1]);
             }
          case 11:
-            Jail();
-            return 0;
+            return Jail();
          case 12:
             Debug.LogFormat("[The Board Walk #{0}] You have landed on Short Line. You have to pay ${1}.", moduleId, Railroad(3));
             return Railroad(3);
@@ -723,8 +734,7 @@ public class BoardWalk : MonoBehaviour {
             return -200;
          case 4:
             CChestProg = CChestProg++ % 14;
-            Jail();
-            return 0;
+            return Jail();
          case 5:
             CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] Holiday fund matures, collect $100.", moduleId, Debt);
@@ -776,11 +786,16 @@ public class BoardWalk : MonoBehaviour {
       return -200;
    }
 
-   void Jail () {
+   int Jail () {
       Jailed = 3;
-      if (Token == 4) { Debt += 100; }
       CurrentPosition = 10;
       Debug.LogFormat("[The Board Walk #{0}] Go to Jail. Go directly to Jail, do not pass Go, do not collect $200.", moduleId);
+      if (Token == 4) {
+         return 100;
+      }
+      else {
+         return 0;
+      }
    }
 
    /* Chance
@@ -862,8 +877,7 @@ public class BoardWalk : MonoBehaviour {
             }
          case 8:
             ChanceProg = (ChanceProg + 1) % 13;
-            Jail();
-            return 0;
+            return Jail();
          case 9:
             ChanceProg = (ChanceProg + 1) % 13;
             Debug.LogFormat("[The Board Walk #{0}] Speeding fine of $15.", moduleId);

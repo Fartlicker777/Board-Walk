@@ -28,7 +28,7 @@ public static class ExMath {
       return Math.Sqrt((double) Input) % 1 == 0;
    }
 
-   public static int BaseTo10 (int Input, int Base) { //From base N to base 10.
+   public static int BaseTo10 (int Input, int Base) { //From base N to base 10. With N being less than 10
       int Total = 0;
       int NumberLength = Input.ToString().Length;
       for (int i = 0; i < NumberLength; i++) {
