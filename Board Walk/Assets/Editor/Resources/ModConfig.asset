@@ -33,4 +33,4 @@ MonoBehaviour:
     If there are any bugs, contact Fartlicker777 on Discord.'
   version: 
   outputFolder: build
-  previewImage: {fileID: 2800000, guid: 856659434c97ccb45b8ee63a92b5dcf3, type: 3}
+  previewImage: {fileID: 2800000, guid: 752e618c6184d244892d0357dd5f7988, type: 3}

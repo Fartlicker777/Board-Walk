@@ -2,9 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
-using KModkit;
 using Rnd = UnityEngine.Random;
 
 public class BoardWalk : MonoBehaviour {
@@ -34,84 +32,44 @@ public class BoardWalk : MonoBehaviour {
    int moduleId;
    private bool moduleSolved;
 
-   int[] InitialCards = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-   int[] InitialCardsChest = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
-   List<int[]> DieRolls = new List<int[]> { };
-   static readonly List<Properties> Places = new List<Properties> { //Name, ColorID, Values
-      new Properties ("Mediterran Avenue", 0, new int[] { 2, 10, 30, 90, 160, 250}),
-      new Properties ("Baltic Avenue", 0, new int[] { 4, 20, 60, 180, 320, 450}),
-
-      new Properties ("Oriental Avenue", 1, new int[] { 6, 30, 90, 270, 400, 550}),
-      new Properties ("Vermont Avenue", 1, new int[] { 6, 30, 90, 270, 400, 550}),
-      new Properties ("Connecticut Avenue", 1, new int[] { 8, 40, 100, 300, 450, 600}),
-
-      new Properties ("St. Charles Place", 2, new int[] { 10, 50, 150, 450, 625, 750}),
-      new Properties ("States Avenue", 2, new int[] { 10, 50, 150, 450, 625, 750}),
-      new Properties ("Virginia Avenue", 2, new int[] { 12, 60, 180, 500, 700, 900}),
-
-      new Properties ("St. James Place", 3, new int[] { 14, 70, 200, 550, 750, 950}),
-      new Properties ("Tennessee Avenue", 3, new int[] { 14, 70, 200, 550, 750, 950}),
-      new Properties ("New York Avenue", 3, new int[] { 16, 80, 220, 600, 800, 1000}),
-
-      new Properties ("Kentucky Avenue", 4, new int[] { 18, 90, 250, 700, 875, 1000}),
-      new Properties ("Indiana Avenue", 4, new int[] { 18, 90, 250, 700, 875, 1000}),
-      new Properties ("Illinois Avenue", 4, new int[] { 20, 100, 300, 750, 925, 1100}),
-
-      new Properties ("Atlantic Avenue", 5, new int[] { 22, 110, 330, 800, 975, 1150}),
-      new Properties ("Ventnor Avenue", 5, new int[] { 22, 110, 330, 800, 975, 1150}),
-      new Properties ("Marvin Gardens", 5, new int[] { 24, 120, 360, 850, 1075, 1200}),
-
-      new Properties ("Pacific Avenue", 6, new int[] { 26, 130, 390, 900, 1100, 1275}),
-      new Properties ("North Carolina Avenue", 6, new int[] { 26, 130, 390, 900, 1100, 1275}),
-      new Properties ("Pennsylvania Avenue", 6, new int[] { 28, 150, 450, 1000, 1200, 1400}),
-
-      new Properties ("Park Place", 7, new int[] { 35, 175, 500, 1100, 1300, 1500}),
-      new Properties ("Boardwalk", 7, new int[] { 50, 200, 600, 1400, 1700, 2000})
-    };
-   int[] ColorVisitations = new int[8];
-   int[] RailroadVisitations = new int[4]; //Is an int array instead bool so that I can do .Sum and use multiplying bullshit
-
-   int Token;
-   /* Board Meanings
-   100 = Go
-   101 = Community Chest
-   102 = Income Tax
-   103 = Reading
-   104 = Chance
-   105 = Jail
-   106 = Electric
-   107 = Pennsylvania Railroad
-   108 = Free Parking
-   109 = BO
-   110 = Water
-   111 = Go to Jail
-   112 = Short
-   113 = Luxury
-   */
-
-   /* Chance
-    * Advance to Boardwalk
-    * Advance to Go
-    * Advance to Illinois
-    * Advance to St. Charles
-    * Advance to the nearest Railroad
-    * Advance to the nearest Utility
-    * Bank pays you $50
-    * Go back 3 spaces
-    * Go directly to Jail
-    * Speeding fine of $15
-    * Go to Reading Railroad
-    * Pay $50        (chairman)
-    * Collect $150   (Building loan)
-    */
    //                 0    1  2    3    4   5   6  7    8  9  10  11  12  13 14  15  16  17  18  19   20  21  22   23  24   25  26  27  28   29  30   31  32  33   34   35   36  37  38  39
    int[] TheBoard = { 100, 0, 101, 1, 102, 103, 2, 104, 3, 4, 105, 5, 106, 6, 7, 107, 8, 101, 9, 10, 108, 11, 104, 12, 13, 109, 14, 15, 110, 16, 111, 17, 18, 101, 19, 112, 104, 20, 113, 21 };
+   List<int[]> DieRolls = new List<int[]> { };
+   int[] InitialCards = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+   int[] InitialCardsChest = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+   int[] ColorVisitations = new int[8];
+   int[] RailroadVisitations = new int[4]; //Is an int array instead bool so that I can do .Sum and use multiplying bullshit
+   int Token;
+   int Mods;
+   int IgnoredMods;
+   int Stage = -1;
+   int Jailed;
+   int CChestProg = -1;
+   int ChanceProg = -1;
+   int CChestIndex;
+   int ChanceIndex;
+   int InputSubmission;
+   int StrikesGained;
+   int StageRecoveryActivations;
    int CurrentPosition;
    int ConsecuativeDoubles;
    int Debt;
 
-   List<bool> JailedTurns = new List<bool> { };
-
+   float[] CChestTextSizes = {
+      0.0009777471f,
+      0.0007653747f,
+      0.001036426f,
+      0.0007509612f,
+      0.0005651942f,
+      0.0008035284f,
+      0.0008035284f,
+      0.0008035284f,
+      0.0008035284f,
+      0.00106463f,
+      0.00106463f,
+      0.0008002994f,
+      0.0006099612f,
+      0.001218359f };
    float[] ChanceTextSizes = {
       0.0009777471f,
       0.0009777471f,
@@ -126,6 +84,10 @@ public class BoardWalk : MonoBehaviour {
       0.0007790008f,
       0.0005676657f,
       0.0007653747f};
+
+   List<bool> JailedTurns = new List<bool> { };
+
+   public static string[] ignoredModules = null;
    string[] ChanceQuotes = {
       "Advance to\nBoardwalk",
       "Advance to\nGo",
@@ -141,7 +103,6 @@ public class BoardWalk : MonoBehaviour {
       "You have been\nelected Discord\nAdmin. Pay each\nplayer $50",
       "Your building\nloan matures.\nCollect $150"
    };
-   float[] CChestTextSizes = { 0.0009777471f, 0.0007653747f, 0.001036426f, 0.0007509612f, 0.0005651942f, 0.0008035284f, 0.0008035284f, 0.0008035284f, 0.0008035284f, 0.00106463f, 0.00106463f, 0.0008002994f, 0.0006099612f, 0.001218359f };
    string[] CChestQuotes = {
       "Advance to\nGo",
       "Bank error in\nyour favor.\nCollect $200",
@@ -158,20 +119,6 @@ public class BoardWalk : MonoBehaviour {
       "You have won second\nplace in a beauty\ncontest. Collect $10",
       "You inherit\n$100"
    };
-
-   public static string[] ignoredModules = null;
-
-   int Mods;
-   int IgnoredMods;
-   int Stage = -1;
-   int Jailed;
-   int CChestProg;
-   int ChanceProg;
-
-   int CChestIndex;
-   int ChanceIndex;
-   int InputSubmission;
-
    string FinalAnswer = "";
 
    bool HasRan;
@@ -180,66 +127,8 @@ public class BoardWalk : MonoBehaviour {
    bool Animating;
    bool UpdateStop;
    bool NeedToJail;
-
    bool ElectricVisited;
    bool WaterVisited;
-
-   int StrikesGained;
-   int StageRecoveryActivations;
-
-   void SwitchPress () {
-      if (Animating) {
-         return;
-      }
-      Audio.PlaySoundAtTransform("flip", transform);
-      UpDownSwitch[0].SetActive(!UpDownSwitch[0].activeSelf);
-      UpDownSwitch[1].SetActive(!UpDownSwitch[1].activeSelf);
-      if (moduleSolved) {
-         return;
-      }
-      if (!Solvable) {
-         if (UpDownSwitch[0].activeSelf) {
-            StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true));
-         }
-         else {
-            StartCoroutine(DisplayText(CChestQuotes[InitialCardsChest[CChestIndex]], false));
-         }
-      }
-      else {
-         for (int i = 1; i < 5; i++) {
-            SubmissionTexts[i].text = SubmissionTexts[i + 1].text;
-         }
-         InputSubmission = 0;
-         SubmissionTexts[5].text = "0";
-      }
-   }
-
-   IEnumerator CheckAnimation () {
-      bool WillStrike = false;
-      for (int i = 0; i < 6; i++) {
-         if (SubmissionTexts[i].text == FinalAnswer[i].ToString() && !WillStrike) {
-            SubmissionTexts[i].color = new Color32(0, 255, 0, 255);
-         }
-         else {
-            WillStrike = true;
-            SubmissionTexts[i].color = new Color32(255, 0, 0, 255);
-         }
-         yield return new WaitForSeconds(.1f);
-      }
-      if (WillStrike) {
-         GetComponent<KMBombModule>().HandleStrike();
-         StrikesGained++;
-         for (int i = 0; i < 6; i++) {
-            SubmissionTexts[i].color = new Color32(255, 255, 255, 255);
-            yield return new WaitForSeconds(.1f);
-         }
-      }
-      else {
-         GetComponent<KMBombModule>().HandlePass();
-         moduleSolved = true;
-         StartCoroutine(SolveAnimation());
-      }
-   }
 
    void Awake () {
       moduleId = moduleIdCounter++;
@@ -305,27 +194,12 @@ public class BoardWalk : MonoBehaviour {
             });
    }
 
+   #region Button Presses
+
    void StageRecoveryPress () {
       if (StrikesGained > StageRecoveryActivations) {
          StartCoroutine(StageRecovery());
          StageRecoveryActivations++;
-      }
-   }
-
-   IEnumerator StageRecovery () {
-      for (int i = 0; i < 6; i++) {
-         LeftDie[i].SetActive(false);
-         RightDie[i].SetActive(false);
-      }
-      for (int i = 0; i < DieRolls.Count(); i++) {
-         if (i != 0) {
-            LeftDie[DieRolls[i - 1][0] - 1].SetActive(false);
-            RightDie[DieRolls[i - 1][1] - 1].SetActive(false);
-         }
-         LeftDie[DieRolls[i][0] - 1].SetActive(true);
-         RightDie[DieRolls[i][1] - 1].SetActive(true);
-         StageIndicator.text = (i + 1).ToString("000");
-         yield return new WaitForSeconds(1f);
       }
    }
 
@@ -343,6 +217,59 @@ public class BoardWalk : MonoBehaviour {
          StartCoroutine(CheckAnimation());
       }
    }
+
+   void ScreenPress () {
+      Audio.PlaySoundAtTransform("Bonk", transform);
+      if (Animating || moduleSolved) {
+         return;
+      }
+      if (Solvable) {
+         InputSubmission++;
+         InputSubmission %= 10;
+         SubmissionTexts[5].text = InputSubmission.ToString();
+      }
+      else if (UpDownSwitch[0].activeSelf) {
+         ChanceIndex++;
+         ChanceIndex %= ChanceQuotes.Length;
+         StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true));
+      }
+      else {
+         CChestIndex++;
+         CChestIndex %= CChestQuotes.Length;
+         StartCoroutine(DisplayText(CChestQuotes[InitialCardsChest[CChestIndex]], false));
+      }
+   }
+
+   void SwitchPress () {
+      if (Animating) {
+         return;
+      }
+      Audio.PlaySoundAtTransform("flip", transform);
+      UpDownSwitch[0].SetActive(!UpDownSwitch[0].activeSelf);
+      UpDownSwitch[1].SetActive(!UpDownSwitch[1].activeSelf);
+      if (moduleSolved) {
+         return;
+      }
+      if (!Solvable) {
+         if (UpDownSwitch[0].activeSelf) {
+            StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true));
+         }
+         else {
+            StartCoroutine(DisplayText(CChestQuotes[InitialCardsChest[CChestIndex]], false));
+         }
+      }
+      else {
+         for (int i = 1; i < 5; i++) {
+            SubmissionTexts[i].text = SubmissionTexts[i + 1].text;
+         }
+         InputSubmission = 0;
+         SubmissionTexts[5].text = "0";
+      }
+   }
+
+   #endregion
+
+   #region Animations
 
    IEnumerator SolveAnimation () {
       Audio.PlaySoundAtTransform("Solve", transform);
@@ -366,31 +293,56 @@ public class BoardWalk : MonoBehaviour {
       }
    }
 
-   int HexToDecimal (char First, char Second) {
-      string Hex = "0123456789ABCDEF";
-      return Array.IndexOf(Hex.ToCharArray(), First) * 16 + Array.IndexOf(Hex.ToCharArray(), Second);
-   }
-
-   void ScreenPress () {
-      Audio.PlaySoundAtTransform("Bonk", transform);
-      if (Animating || moduleSolved) {
-         return;
+   IEnumerator StageRecovery () {
+      Animating = true;
+      for (int i = 0; i < 6; i++) {
+         LeftDie[i].SetActive(false);
+         RightDie[i].SetActive(false);
       }
-      if (Solvable) {
-         InputSubmission++;
-         InputSubmission %= 10;
-         SubmissionTexts[5].text = InputSubmission.ToString();
+      for (int i = 0; i < DieRolls.Count(); i++) {
+         if (i != 0) {
+            LeftDie[DieRolls[i - 1][0] - 1].SetActive(false);
+            RightDie[DieRolls[i - 1][1] - 1].SetActive(false);
+         }
+         LeftDie[DieRolls[i][0] - 1].SetActive(true);
+         RightDie[DieRolls[i][1] - 1].SetActive(true);
+         StageIndicator.text = (i + 1).ToString("000");
+         yield return new WaitForSeconds(1f);
       }
-      else if (UpDownSwitch[0].activeSelf) {
-         ChanceIndex++;
-         ChanceIndex %= ChanceQuotes.Length;
-         StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true));
+      for (int i = 0; i < 6; i++) {
+         SubmissionTexts[i].text = "";
+      }
+      StageIndicator.text = "";
+      ChanceIndex = 0;
+      CChestIndex = 0;
+      if (UpDownSwitch[0].activeSelf) {
+         for (int i = 0; i < 13; i++) {
+            StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true));
+            while (Animating) {
+               yield return null;
+            }
+            ChanceIndex++;
+            ChanceIndex %= ChanceQuotes.Length;
+            yield return new WaitForSeconds(1f);
+         }
       }
       else {
-         CChestIndex++;
-         CChestIndex %= CChestQuotes.Length;
-         StartCoroutine(DisplayText(CChestQuotes[InitialCardsChest[CChestIndex]], false));
+         for (int i = 0; i < 14; i++) {
+            DisplayText(CChestQuotes[InitialCardsChest[i]], false);
+            while (Animating) {
+               yield return null;
+            }
+            CChestIndex++;
+            CChestIndex %= CChestQuotes.Length;
+            yield return new WaitForSeconds(1f);
+         }
       }
+      CardText.text = "";
+      SubmissionTexts[0].text = "$";
+      for (int i = 1; i < 6; i++) {
+         SubmissionTexts[i].text = "0";
+      }
+      Animating = false;
    }
 
    IEnumerator DisplayText (string Input, bool Up) {
@@ -421,6 +373,40 @@ public class BoardWalk : MonoBehaviour {
          }
       }
       Animating = false;
+   }
+
+   IEnumerator CheckAnimation () {
+      bool WillStrike = false;
+      for (int i = 0; i < 6; i++) {
+         if (SubmissionTexts[i].text == FinalAnswer[i].ToString() && !WillStrike) {
+            SubmissionTexts[i].color = new Color32(0, 255, 0, 255);
+         }
+         else {
+            WillStrike = true;
+            SubmissionTexts[i].color = new Color32(255, 0, 0, 255);
+         }
+         yield return new WaitForSeconds(.1f);
+      }
+      if (WillStrike) {
+         GetComponent<KMBombModule>().HandleStrike();
+         StrikesGained++;
+         for (int i = 0; i < 6; i++) {
+            SubmissionTexts[i].color = new Color32(255, 255, 255, 255);
+            yield return new WaitForSeconds(.1f);
+         }
+      }
+      else {
+         GetComponent<KMBombModule>().HandlePass();
+         moduleSolved = true;
+         StartCoroutine(SolveAnimation());
+      }
+   }
+
+   #endregion
+
+   int HexToDecimal (char First, char Second) {
+      string Hex = "0123456789ABCDEF";
+      return Array.IndexOf(Hex.ToCharArray(), First) * 16 + Array.IndexOf(Hex.ToCharArray(), Second);
    }
 
    void Start () {
@@ -466,6 +452,8 @@ public class BoardWalk : MonoBehaviour {
       Debug.LogFormat("[The Board Walk #{0}] Your token is the {1}.", moduleId, new string[8] { "Thimble", "Wheelbarrow", "Cat", "Dog", "Car", "Iron", "Top Hat", "Battleship" }[Token]);
    }
 
+   #region Board Calculations
+
    void Update () {
       if (UpdateStop) {
          return;
@@ -483,7 +471,7 @@ public class BoardWalk : MonoBehaviour {
       if (Mods == 0 && !HasRan) {
          Mods = Bomb.GetSolvableModuleNames().Count() - IgnoredMods;
          if (Bomb.GetSolvableModuleNames().Count() == IgnoredMods) {
-            GetComponent<KMBombModule>().HandlePass();
+            StartCoroutine(SolveAnimation());
          }
          if (Mods != 0) {
             for (int i = 0; i < Mods; i++) {
@@ -510,8 +498,8 @@ public class BoardWalk : MonoBehaviour {
       int Solved = Bomb.GetSolvedModuleNames().Count(x => !ignoredModules.Contains(x));
       if (Solved == Mods) {
          Solvable = true;
-         CardText.transform.localScale = new Vector3(0.001534288f, 0.001534288f, 0.001534288f);
          CardText.text = "";
+         StageIndicator.text = "";
          SubmissionTexts[0].text = "$";
          for (int i = 1; i < 6; i++) {
             SubmissionTexts[i].text = "0";
@@ -714,67 +702,54 @@ public class BoardWalk : MonoBehaviour {
  */
 
    int CommunityChest () { //CChest and Chance need to be ints because they break for no fucking reason.
-      Debug.Log(InitialCardsChest[CChestProg]);
+      //Debug.Log(InitialCardsChest[CChestProg]);
+      CChestProg = (CChestProg + 1) % 14;
       switch (InitialCardsChest[CChestProg]) {
          case 0:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Go.", moduleId);
             return Go();
          case 1:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] Bank error in your favor, collect $200.", moduleId, Debt);
             return -200;
          case 2:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] Doctor's fees. Pay $50.", moduleId, Debt);
             return 50;
          case 3:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] From sale of stock, you get $200.", moduleId, Debt);
             return -200;
          case 4:
-            CChestProg = CChestProg++ % 14;
             return Jail();
          case 5:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] Holiday fund matures, collect $100.", moduleId, Debt);
             return -100;
          case 6:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] Income tax refund, collect $20.", moduleId, Debt);
             return -20;
          case 7:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] It is your birthday. Collect $10 from every player.", moduleId, Debt);
             return -10;
          case 8:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] Life insurance matters. Collect $100.", moduleId, Debt);
             return -100;
          case 9:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] Pay hospital fees of $100.", moduleId, Debt);
             return 100;
          case 10:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] Pay school fees of $50.", moduleId, Debt);
             return 50;
          case 11:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] Receive $25 consultancy fee.", moduleId, Debt);
             return -25;
          case 12:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] You have won second prize in a beauty contest. Collect $10.", moduleId, Debt);
             return -10;
          case 13:
-            CChestProg = CChestProg++ % 14;
             Debug.LogFormat("[The Board Walk #{0}] You inherit $100.", moduleId, Debt);
             return -100;
          default:
             return 0;
       }
-      
+
    }
 
    int Go () {
@@ -815,28 +790,24 @@ public class BoardWalk : MonoBehaviour {
  */
 
    int Chance () {
+      ChanceProg = (ChanceProg + 1) % 13;
       switch (InitialCards[ChanceProg]) {
          case 0:
-            ChanceProg = (ChanceProg + 1) % 13;
             AdvanceUntilSomewhere(39);
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Boardwalk.", moduleId);
             return PropertyDebtCollector();
          case 1:
-            ChanceProg = (ChanceProg + 1) % 13;
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Go.", moduleId);
             return Go();
          case 2:
-            ChanceProg = (ChanceProg + 1) % 13;
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Illinois Avenue.", moduleId);
             AdvanceUntilSomewhere(23);
             return PropertyDebtCollector();
          case 3:
-            ChanceProg = (ChanceProg + 1) % 13;
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to St. Charles.", moduleId);
             AdvanceUntilSomewhere(11);
             return PropertyDebtCollector();
          case 4:
-            ChanceProg = (ChanceProg + 1) % 13;
             bool Temp = true;
             while (Temp) {
                CurrentPosition++;
@@ -849,7 +820,6 @@ public class BoardWalk : MonoBehaviour {
             }
             return 2 * NonPropertyCollector();
          case 5:
-            ChanceProg = (ChanceProg + 1) % 13;
             if (CurrentPosition >= 12 && CurrentPosition < 28) {
                AdvanceUntilSomewhere(28);
             }
@@ -859,11 +829,9 @@ public class BoardWalk : MonoBehaviour {
             Debug.LogFormat("[The Board Walk #{0}] Advance to the nearest Utility.", moduleId);
             return NonPropertyCollector();
          case 6:
-            ChanceProg = (ChanceProg + 1) % 13;
             Debug.LogFormat("[The Board Walk #{0}] Bank pays you $50.", moduleId, Debt);
             return -50;
          case 7:
-            ChanceProg = (ChanceProg + 1) % 13;
             CurrentPosition -= 3;
             CurrentPosition = ExMath.Mod(CurrentPosition, 40);
             Debug.LogFormat("[The Board Walk #{0}] Go back 3 spaces.", moduleId);
@@ -876,23 +844,18 @@ public class BoardWalk : MonoBehaviour {
                   return 0;
             }
          case 8:
-            ChanceProg = (ChanceProg + 1) % 13;
             return Jail();
          case 9:
-            ChanceProg = (ChanceProg + 1) % 13;
             Debug.LogFormat("[The Board Walk #{0}] Speeding fine of $15.", moduleId);
             return 15;
          case 10:
-            ChanceProg = (ChanceProg + 1) % 13;
             Debug.LogFormat("[The Board Walk #{0}] Advance to Reading Railroad.", moduleId);
             CurrentPosition = 5;
             return Railroad(0) + Go();
          case 11:
-            ChanceProg = (ChanceProg + 1) % 13;
             Debug.LogFormat("[The Board Walk #{0}] You have been elected Discord Admin. Pay $50 to everyone.", moduleId);
             return 50;
          case 12:
-            ChanceProg = (ChanceProg + 1) % 13;
             Debug.LogFormat("[The Board Walk #{0}] Your building loan matures. Receive $150.", moduleId, Debt);
             return -150;
          default:
@@ -925,6 +888,10 @@ public class BoardWalk : MonoBehaviour {
       //Debug.Log(CurrentPosition);
    }
 
+   #endregion
+
+   #region Property Declaration
+
    class Properties {
       public string Name { get; set; }
       public int ColorID { get; set; }
@@ -945,15 +912,123 @@ public class BoardWalk : MonoBehaviour {
       }
    }
 
+   readonly List<Properties> Places = new List<Properties> { //Name, ColorID, Values
+      new Properties ("Mediterran Avenue", 0, new int[] { 2, 10, 30, 90, 160, 250}),
+      new Properties ("Baltic Avenue", 0, new int[] { 4, 20, 60, 180, 320, 450}),
+
+      new Properties ("Oriental Avenue", 1, new int[] { 6, 30, 90, 270, 400, 550}),
+      new Properties ("Vermont Avenue", 1, new int[] { 6, 30, 90, 270, 400, 550}),
+      new Properties ("Connecticut Avenue", 1, new int[] { 8, 40, 100, 300, 450, 600}),
+
+      new Properties ("St. Charles Place", 2, new int[] { 10, 50, 150, 450, 625, 750}),
+      new Properties ("States Avenue", 2, new int[] { 10, 50, 150, 450, 625, 750}),
+      new Properties ("Virginia Avenue", 2, new int[] { 12, 60, 180, 500, 700, 900}),
+
+      new Properties ("St. James Place", 3, new int[] { 14, 70, 200, 550, 750, 950}),
+      new Properties ("Tennessee Avenue", 3, new int[] { 14, 70, 200, 550, 750, 950}),
+      new Properties ("New York Avenue", 3, new int[] { 16, 80, 220, 600, 800, 1000}),
+
+      new Properties ("Kentucky Avenue", 4, new int[] { 18, 90, 250, 700, 875, 1000}),
+      new Properties ("Indiana Avenue", 4, new int[] { 18, 90, 250, 700, 875, 1000}),
+      new Properties ("Illinois Avenue", 4, new int[] { 20, 100, 300, 750, 925, 1100}),
+
+      new Properties ("Atlantic Avenue", 5, new int[] { 22, 110, 330, 800, 975, 1150}),
+      new Properties ("Ventnor Avenue", 5, new int[] { 22, 110, 330, 800, 975, 1150}),
+      new Properties ("Marvin Gardens", 5, new int[] { 24, 120, 360, 850, 1075, 1200}),
+
+      new Properties ("Pacific Avenue", 6, new int[] { 26, 130, 390, 900, 1100, 1275}),
+      new Properties ("North Carolina Avenue", 6, new int[] { 26, 130, 390, 900, 1100, 1275}),
+      new Properties ("Pennsylvania Avenue", 6, new int[] { 28, 150, 450, 1000, 1200, 1400}),
+
+      new Properties ("Park Place", 7, new int[] { 35, 175, 500, 1100, 1300, 1500}),
+      new Properties ("Boardwalk", 7, new int[] { 50, 200, 600, 1400, 1700, 2000})
+    };
+
+   #endregion
+
+   #region Twitch Plays
+
 #pragma warning disable 414
    private readonly string TwitchHelpMessage = @"Use !{0} to do something.";
 #pragma warning restore 414
 
    IEnumerator ProcessTwitchCommand (string Command) {
+      Command = Command.Trim().ToUpper();
       yield return null;
+      if (Command == "JAIL") {
+         SubmitButton.OnInteract();
+         yield return new WaitForSeconds(.1f);
+      }
+      else if (Command == "RECOVER") {
+         StageRecoveryButton.OnInteract();
+         yield return new WaitForSeconds(.1f);
+      }
+      else if (Command == "TOGGLE SWITCH") {
+         Switch.OnInteract();
+         yield return new WaitForSeconds(.1f);
+      }
+      else if (Command == "TOGGLE SCREEN") {
+         Screen.OnInteract();
+         yield return new WaitForSeconds(.1f);
+      }
+      else if (!Command.Any(x => "0123456789".Contains(x)) && Command != "CLEAR" && Command != "SUBMIT") {
+         yield return "sendtochaterror I don't understand!";
+      }
+      else if (Command == "CLEAR") {
+         for (int i = 0; i < 5; i++) {
+            Switch.OnInteract();
+            yield return new WaitForSeconds(.1f);
+         }
+      }
+      else if (Command.Any(x => "0123456789".Contains(x)) && Solvable && Command.Length < 6) {
+         for (int i = 0; i < Command.Length; i++) {
+            if (Command[i] != 0) {
+               for (int j = 0; j < int.Parse(Command[i].ToString()); j++) {
+                  Screen.OnInteract();
+                  yield return new WaitForSeconds(.1f);
+               }
+            }
+            if (i + 1 != Command.Length) {
+               Switch.OnInteract();
+               yield return new WaitForSeconds(.1f);
+            }
+         }
+         yield return new WaitForSeconds(.1f);
+      }
+      else if (Command == "SUBMIT") {
+         SubmitButton.OnInteract();
+         yield return new WaitForSeconds(.1f);
+      }
+      else {
+         yield return "sendtochaterror I don't understand!";
+      }
    }
 
    IEnumerator TwitchHandleForcedSolve () {
+      while (!Solvable) {
+         if (NeedToJail) {
+            SubmitButton.OnInteract();
+            yield return new WaitForSeconds(.1f);
+         }
+         yield return true;
+      }
+      for (int j = 0; j < 5; j++) {
+         Switch.OnInteract();
+         yield return new WaitForSeconds(.1f);
+      }
+      for (int i = 1; i < 6; i++) {
+         while (SubmissionTexts[5].text != FinalAnswer[i].ToString()) {
+            Screen.OnInteract();
+            yield return new WaitForSeconds(.1f);
+         }
+         if (i != 5) {
+            Switch.OnInteract();
+            yield return new WaitForSeconds(.1f);
+         }
+      }
+      SubmitButton.OnInteract();
       yield return null;
    }
 }
+
+#endregion

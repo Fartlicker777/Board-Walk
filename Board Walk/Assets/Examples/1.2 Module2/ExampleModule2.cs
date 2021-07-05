@@ -26,7 +26,7 @@ public class ExampleModule2 : MonoBehaviour
             TextMesh buttonText = buttons[i].GetComponentInChildren<TextMesh>();
             buttonText.text = label;
             int j = i;
-            buttons[i].OnInteract += delegate () { Debug.Log("Press #" + j); OnPress(j == correctIndex); return false; };
+            buttons[i].OnInteract += delegate () { OnPress(j == correctIndex); return false; };
             buttons[i].OnInteractEnded += OnRelease;
         }
     }
