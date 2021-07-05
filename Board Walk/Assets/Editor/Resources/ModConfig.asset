@@ -14,7 +14,23 @@ MonoBehaviour:
   id: BoardWalk
   title: The Board Walk
   author: me
-  description: 
+  description: 'New York funny moments compilation number 8.
+
+
+    Track your movement around a monopoly board after each solve and input your debt
+    at the end of the bomb.
+
+
+    Idea by me, manual by Grunkle Squeaky.
+
+
+    Made for the KTANE Modding Jam #1 (Board game.)
+
+
+    Manual can be found at ktane.timwi.de or in the manuals folder of your game.
+
+
+    If there are any bugs, contact Fartlicker777 on Discord.'
   version: 
   outputFolder: build
   previewImage: {fileID: 2800000, guid: 856659434c97ccb45b8ee63a92b5dcf3, type: 3}

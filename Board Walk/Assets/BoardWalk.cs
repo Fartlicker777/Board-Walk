@@ -191,6 +191,7 @@ public class BoardWalk : MonoBehaviour {
       if (Animating) {
          return;
       }
+      Audio.PlaySoundAtTransform("flip", transform);
       UpDownSwitch[0].SetActive(!UpDownSwitch[0].activeSelf);
       UpDownSwitch[1].SetActive(!UpDownSwitch[1].activeSelf);
       if (moduleSolved) {
@@ -344,6 +345,7 @@ public class BoardWalk : MonoBehaviour {
    }
 
    IEnumerator SolveAnimation () {
+      Audio.PlaySoundAtTransform("Solve", transform);
       string[] Colors = {
          "783f04",
          "76a5af",
@@ -370,10 +372,8 @@ public class BoardWalk : MonoBehaviour {
    }
 
    void ScreenPress () {
-      if (moduleSolved) {
-         return;
-      }
-      if (Animating) {
+      Audio.PlaySoundAtTransform("Bonk", transform);
+      if (Animating || moduleSolved) {
          return;
       }
       if (Solvable) {
