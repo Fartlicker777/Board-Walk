@@ -542,8 +542,10 @@ public class BoardWalk : MonoBehaviour {
       if (Token == 3) {
          CurrentPosition++;
       }
-      CurrentPosition %= 40;
-      AdvanceUntilSomewhere(CurrentPosition);
+      if (CurrentPosition >= 40) {
+         Debt += Go();
+         CurrentPosition %= 40;
+      }
       switch (TheBoard[CurrentPosition] / 100) {
          case 0:
             Debt += PropertyDebtCollector();
