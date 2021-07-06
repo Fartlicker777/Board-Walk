@@ -198,6 +198,8 @@ public class BoardWalk : MonoBehaviour {
    #region Button Presses
 
    void StageRecoveryPress () {
+      Audio.PlaySoundAtTransform("Bonk", transform);
+      Screen.AddInteractionPunch();
       if (StrikesGained > StageRecoveryActivations) {
          StartCoroutine(StageRecovery());
          StageRecoveryActivations++;
@@ -205,6 +207,8 @@ public class BoardWalk : MonoBehaviour {
    }
 
    void SubmitButtonPress () {
+      Audio.PlaySoundAtTransform("Bonk", transform);
+      Screen.AddInteractionPunch();
       if (moduleSolved) {
          return;
       }
@@ -221,6 +225,7 @@ public class BoardWalk : MonoBehaviour {
 
    void ScreenPress () {
       Audio.PlaySoundAtTransform("Bonk", transform);
+      Screen.AddInteractionPunch();
       if (Animating || moduleSolved) {
          return;
       }
@@ -535,6 +540,7 @@ public class BoardWalk : MonoBehaviour {
       }
       if (ConsecuativeDoubles == 3) { //Leave this for later
          ConsecuativeDoubles %= 3;
+         Jailed = 3;
          Debug.LogFormat("[The Board Walk #{0}] Uh oh. You rolled three doubles.", moduleId);
          Debt += Jail();
          return;
@@ -765,7 +771,6 @@ public class BoardWalk : MonoBehaviour {
    }
 
    int Jail () {
-      Jailed = 3;
       CurrentPosition = 10;
       Debug.LogFormat("[The Board Walk #{0}] Go to Jail. Go directly to Jail, do not pass Go, do not collect $200.", moduleId);
       if (Token == 4) {
