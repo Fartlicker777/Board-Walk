@@ -138,8 +138,8 @@ public class BoardWalk : MonoBehaviour {
       SubmitButton.OnInteract += delegate () { SubmitButtonPress(); return false; };
       StageRecoveryButton.OnInteract += delegate () { StageRecoveryPress(); return false; };
 
-      if (ignoredModules == null)
-         ignoredModules = GetComponent<KMBossModule>().GetIgnoredModules("The Board Walk", new string[]{
+      if (ignoredModules == null) {
+         ignoredModules = GetComponent<KMBossModule>().GetIgnoredModules("The Board Walk", new string[] {
                 "14",
                 "42",
                 "501",
@@ -192,6 +192,7 @@ public class BoardWalk : MonoBehaviour {
                 "The Very Annoying Button",
                 "Whiteout"
             });
+      }
    }
 
    #region Button Presses
@@ -803,7 +804,7 @@ public class BoardWalk : MonoBehaviour {
             return Go();
          case 2:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Illinois Avenue.", moduleId);
-            AdvanceUntilSomewhere(23);
+            AdvanceUntilSomewhere(24);
             return PropertyDebtCollector();
          case 3:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to St. Charles.", moduleId);
