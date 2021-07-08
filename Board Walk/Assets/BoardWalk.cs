@@ -109,7 +109,7 @@ public class BoardWalk : MonoBehaviour {
       "Doctor's fees.\nPay $200",
       "From sale of\nstock you\nget $200",
       "Go to jail. Go directly\nto jail, do not pass Go,\ndo not collect $200",
-      "Holiday fund\nmatures.\nReceive $120",
+      "Holiday fund\nmatures.\nReceive $100",
       "Income Tax\nrefund. Collect\n$20",
       "It is your\nbirthday.\nCollect $10",
       "Life Insurance\nmatters. Collect\n$100",
@@ -495,7 +495,7 @@ public class BoardWalk : MonoBehaviour {
                }
                JailedTurns.Add(false);
             }
-            Debt = ExMath.Mod(Debt, 100000);
+            Debt = Debt < 0 ? 0 : Debt % 100000;
             FinalAnswer = "$" + Debt.ToString("00000");
             Debug.LogFormat("[The Board Walk #{0}] The final amount you have to pay is {1}.", moduleId, FinalAnswer);
             HasRan = true;
