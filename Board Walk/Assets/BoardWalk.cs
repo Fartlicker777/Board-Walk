@@ -129,6 +129,7 @@ public class BoardWalk : MonoBehaviour {
    bool NeedToJail;
    bool ElectricVisited;
    bool WaterVisited;
+   bool RecoveryAnimating;
 
    void Awake () {
       moduleId = moduleIdCounter++;
@@ -200,6 +201,9 @@ public class BoardWalk : MonoBehaviour {
    void StageRecoveryPress () {
       Audio.PlaySoundAtTransform("Bonk", transform);
       Screen.AddInteractionPunch();
+      if (Animating || moduleSolved || RecoveryAnimating) {
+         return;
+      }
       if (StrikesGained > StageRecoveryActivations) {
          StartCoroutine(StageRecovery());
          StageRecoveryActivations++;
@@ -209,7 +213,7 @@ public class BoardWalk : MonoBehaviour {
    void SubmitButtonPress () {
       Audio.PlaySoundAtTransform("Bonk", transform);
       Screen.AddInteractionPunch();
-      if (moduleSolved) {
+      if (Animating || moduleSolved || RecoveryAnimating) {
          return;
       }
       if (!Solvable) {
@@ -226,7 +230,7 @@ public class BoardWalk : MonoBehaviour {
    void ScreenPress () {
       Audio.PlaySoundAtTransform("Bonk", transform);
       Screen.AddInteractionPunch();
-      if (Animating || moduleSolved) {
+      if (Animating || moduleSolved || RecoveryAnimating) {
          return;
       }
       if (Solvable) {
@@ -237,17 +241,17 @@ public class BoardWalk : MonoBehaviour {
       else if (UpDownSwitch[0].activeSelf) {
          ChanceIndex++;
          ChanceIndex %= ChanceQuotes.Length;
-         StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true));
+         StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true, false));
       }
       else {
          CChestIndex++;
          CChestIndex %= CChestQuotes.Length;
-         StartCoroutine(DisplayText(CChestQuotes[InitialCardsChest[CChestIndex]], false));
+         StartCoroutine(DisplayText(CChestQuotes[InitialCardsChest[CChestIndex]], false, false));
       }
    }
 
    void SwitchPress () {
-      if (Animating) {
+      if (Animating || RecoveryAnimating) {
          return;
       }
       Audio.PlaySoundAtTransform("flip", transform);
@@ -258,10 +262,10 @@ public class BoardWalk : MonoBehaviour {
       }
       if (!Solvable) {
          if (UpDownSwitch[0].activeSelf) {
-            StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true));
+            StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true, false));
          }
          else {
-            StartCoroutine(DisplayText(CChestQuotes[InitialCardsChest[CChestIndex]], false));
+            StartCoroutine(DisplayText(CChestQuotes[InitialCardsChest[CChestIndex]], false, false));
          }
       }
       else {
@@ -292,7 +296,7 @@ public class BoardWalk : MonoBehaviour {
       while (true) {
          for (int j = 0; j < 8; j++) {
             for (int i = 0; i < 6; i++) {
-               SubmissionTexts[i].color = new Color32((byte) HexToDecimal(Colors[j][0], Colors[j][1]), (byte) HexToDecimal(Colors[j][2], Colors[j][3]), (byte) HexToDecimal(Colors[j][4], Colors[j][5]), 255);
+               SubmissionTexts[i].color = new Color32((byte) ExMath.HexToDecimal(Colors[j][0], Colors[j][1]), (byte) ExMath.HexToDecimal(Colors[j][2], Colors[j][3]), (byte) ExMath.HexToDecimal(Colors[j][4], Colors[j][5]), 255);
                yield return new WaitForSeconds(.1f);
             }
          }
@@ -323,7 +327,7 @@ public class BoardWalk : MonoBehaviour {
       CChestIndex = 0;
       if (UpDownSwitch[0].activeSelf) {
          for (int i = 0; i < 13; i++) {
-            StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true));
+            StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true, true));
             while (Animating) {
                yield return null;
             }
@@ -334,7 +338,7 @@ public class BoardWalk : MonoBehaviour {
       }
       else {
          for (int i = 0; i < 14; i++) {
-            DisplayText(CChestQuotes[InitialCardsChest[i]], false);
+            DisplayText(CChestQuotes[InitialCardsChest[i]], false, true);
             while (Animating) {
                yield return null;
             }
@@ -343,15 +347,17 @@ public class BoardWalk : MonoBehaviour {
             yield return new WaitForSeconds(1f);
          }
       }
+      InputSubmission = 0;
       CardText.text = "";
       SubmissionTexts[0].text = "$";
       for (int i = 1; i < 6; i++) {
          SubmissionTexts[i].text = "0";
       }
+      RecoveryAnimating = false;
       Animating = false;
    }
 
-   IEnumerator DisplayText (string Input, bool Up) {
+   IEnumerator DisplayText (string Input, bool Up, bool Recovery) {
       CardText.text = "";
       if (Up) {
          if (ChanceIndex == 0) {
@@ -379,6 +385,9 @@ public class BoardWalk : MonoBehaviour {
          }
       }
       Animating = false;
+      if (Recovery) {
+         RecoveryAnimating = true;
+      }
    }
 
    IEnumerator CheckAnimation () {
@@ -409,11 +418,6 @@ public class BoardWalk : MonoBehaviour {
    }
 
    #endregion
-
-   int HexToDecimal (char First, char Second) {
-      string Hex = "0123456789ABCDEF";
-      return Array.IndexOf(Hex.ToCharArray(), First) * 16 + Array.IndexOf(Hex.ToCharArray(), Second);
-   }
 
    void Start () {
       InitialCards.Shuffle();
@@ -549,10 +553,10 @@ public class BoardWalk : MonoBehaviour {
       if (Token == 3) {
          CurrentPosition++;
       }
-      if (CurrentPosition >= 40) {
+      if (CurrentPosition > 40) {
          Debt += Go();
-         CurrentPosition %= 40;
       }
+      CurrentPosition %= 40;
       switch (TheBoard[CurrentPosition] / 100) {
          case 0:
             Debt += PropertyDebtCollector();
@@ -569,6 +573,13 @@ public class BoardWalk : MonoBehaviour {
          Places[TheBoard[CurrentPosition]].Visited = true;
          ColorVisitations[Places[TheBoard[CurrentPosition]].ColorID]++;
       }
+      int Temp = Places[TheBoard[CurrentPosition]].Values[Places[TheBoard[CurrentPosition]].Progression];
+      if (Places[TheBoard[CurrentPosition]].DoubleCash) {
+         Temp *= 2;
+      }
+      if (Places[TheBoard[CurrentPosition]].Progression != 5) {
+         Places[TheBoard[CurrentPosition]].Progression++;
+      }
       switch (Places[TheBoard[CurrentPosition]].ColorID) {
          case 0:
          case 7:
@@ -582,14 +593,6 @@ public class BoardWalk : MonoBehaviour {
             }
             break;
       }
-      int Temp = Places[TheBoard[CurrentPosition]].Values[Places[TheBoard[CurrentPosition]].Progression];
-      if (Places[TheBoard[CurrentPosition]].DoubleCash) {
-         Temp *= 2;
-      }
-      if (Places[TheBoard[CurrentPosition]].Progression != 5) {
-         Places[TheBoard[CurrentPosition]].Progression++;
-      }
-
       Debug.LogFormat("[The Board Walk #{0}] You have landed on {1}. You have to pay ${2}.", moduleId, Places[TheBoard[CurrentPosition]].Name, Temp);
       return Temp;
    }
@@ -806,6 +809,7 @@ public class BoardWalk : MonoBehaviour {
             return PropertyDebtCollector();
          case 1:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Go.", moduleId);
+            CurrentPosition = 0;
             return Go();
          case 2:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Illinois Avenue.", moduleId);
@@ -819,6 +823,7 @@ public class BoardWalk : MonoBehaviour {
             bool Temp = true;
             while (Temp) {
                CurrentPosition++;
+               CurrentPosition %= 40;
                if (TheBoard[CurrentPosition] / 100 == 1) {
                   if (TheBoard[CurrentPosition] % 100 == 3 || TheBoard[CurrentPosition] % 100 == 7 || TheBoard[CurrentPosition] % 100 == 9 || TheBoard[CurrentPosition] % 100 == 12) {
                      Debug.LogFormat("[The Board Walk #{0}] Advance to the nearest railroad. Pay twice the rental to which they are otherwise entitled.", moduleId);
@@ -957,7 +962,7 @@ public class BoardWalk : MonoBehaviour {
    #region Twitch Plays
 
 #pragma warning disable 414
-   private readonly string TwitchHelpMessage = @"Use !{0} to do something.";
+   private readonly string TwitchHelpMessage = @"Use !{0} Jail to press the jail button. Use !{0} Recover to press the stage recovery button. Use !{0} toggle switch/screen to toggle that respective selectable. Use !{0} clear to clear your current submission. Use !{0} ##### to input a number. Use !{0} submit to submit said answer.";
 #pragma warning restore 414
 
    IEnumerator ProcessTwitchCommand (string Command) {

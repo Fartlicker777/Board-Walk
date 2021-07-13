@@ -46,4 +46,9 @@ public static class ExMath {
       }
       return Current;
    }
+
+   public static int HexToDecimal (char First, char Second) {
+      string Hex = "0123456789ABCDEF";
+      return Array.IndexOf(Hex.ToCharArray(), First) * 16 + Array.IndexOf(Hex.ToCharArray(), Second);
+   }
 }
