@@ -38,7 +38,7 @@ public class BoardWalk : MonoBehaviour {
    int[] InitialCards = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
    int[] InitialCardsChest = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
    int[] ColorVisitations = new int[8];
-   int[] RailroadVisitations = new int[4]; //Is an int array instead bool so that I can do .Sum and use multiplying bullshit
+   int[] RailroadVisitations = new int[4]; //Is an int array instead bool so that I can do .Sum
    int Token;
    int Mods;
    int IgnoredMods;
@@ -460,6 +460,17 @@ public class BoardWalk : MonoBehaviour {
       }
 
       Debug.LogFormat("[The Board Walk #{0}] Your token is the {1}.", moduleId, new string[8] { "Thimble", "Wheelbarrow", "Cat", "Dog", "Car", "Iron", "Top Hat", "Battleship" }[Token]);
+      Debug.LogFormat("[The Board Walk #{0}] The Chance cards in order are:", moduleId);
+      for (int i = 0; i < ChanceQuotes.Length; i++) {
+         Debug.LogFormat("[The Board Walk #{0}] {1}.", moduleId, ChanceQuotes[InitialCards[i]].Replace('\n', ' '));
+      }
+      Debug.LogFormat("[The Board Walk #{0}] The Community Chest cards in order are:", moduleId);
+      for (int i = 0; i < CChestQuotes.Length; i++) {
+         Debug.LogFormat("[The Board Walk #{0}] {1}.", moduleId, CChestQuotes[InitialCardsChest[i]].Replace('\n', ' '));
+      }
+      Debug.LogFormat("[The Board Walk #{0}] ---------------------------------", moduleId);
+      Debug.LogFormat("[The Board Walk #{0}] Beginning of module calculations.", moduleId);
+      Debug.LogFormat("[The Board Walk #{0}] ---------------------------------", moduleId);
    }
 
    #region Board Calculations
@@ -499,7 +510,7 @@ public class BoardWalk : MonoBehaviour {
                }
                JailedTurns.Add(false);
             }
-            Debt = Debt < 0 ? 0 : Debt % 100000;
+            Debt = Math.Abs(Debt % 100000);
             FinalAnswer = "$" + Debt.ToString("00000");
             Debug.LogFormat("[The Board Walk #{0}] The final amount you have to pay is {1}.", moduleId, FinalAnswer);
             HasRan = true;
@@ -775,6 +786,7 @@ public class BoardWalk : MonoBehaviour {
 
    int Jail () {
       CurrentPosition = 10;
+      Jailed = 3;
       Debug.LogFormat("[The Board Walk #{0}] Go to Jail. Go directly to Jail, do not pass Go, do not collect $200.", moduleId);
       if (Token == 4) {
          return 100;
@@ -804,21 +816,18 @@ public class BoardWalk : MonoBehaviour {
       ChanceProg = (ChanceProg + 1) % 13;
       switch (InitialCards[ChanceProg]) {
          case 0:
-            AdvanceUntilSomewhere(39);
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Boardwalk.", moduleId);
-            return PropertyDebtCollector();
+            return AdvanceUntilSomewhere(39);
          case 1:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Go.", moduleId);
             CurrentPosition = 0;
             return Go();
          case 2:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Illinois Avenue.", moduleId);
-            AdvanceUntilSomewhere(24);
-            return PropertyDebtCollector();
+            return AdvanceUntilSomewhere(24);
          case 3:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to St. Charles.", moduleId);
-            AdvanceUntilSomewhere(11);
-            return PropertyDebtCollector();
+            return AdvanceUntilSomewhere(11);
          case 4:
             bool Temp = true;
             while (Temp) {
@@ -833,14 +842,14 @@ public class BoardWalk : MonoBehaviour {
             }
             return 2 * NonPropertyCollector();
          case 5:
-            if (CurrentPosition >= 12 && CurrentPosition < 28) {
-               AdvanceUntilSomewhere(28);
+            Debug.LogFormat("[The Board Walk #{0}] Advance to the nearest Utility.", moduleId);
+            if (CurrentPosition > 12 && CurrentPosition < 28) {
+               return AdvanceUntilSomewhere(28);
             }
             else {
-               AdvanceUntilSomewhere(12);
+               return AdvanceUntilSomewhere(12);
             }
-            Debug.LogFormat("[The Board Walk #{0}] Advance to the nearest Utility.", moduleId);
-            return NonPropertyCollector();
+            
          case 6:
             Debug.LogFormat("[The Board Walk #{0}] Bank pays you $50.", moduleId, Debt);
             return -50;
@@ -890,13 +899,20 @@ public class BoardWalk : MonoBehaviour {
       Debug.LogFormat("[The Board Walk #{0}] Your debt is now ${1}.", moduleId, Debt);
    }
 
-   void AdvanceUntilSomewhere (int Target) {
+   int AdvanceUntilSomewhere (int Target) {
+      int temp = 0;
       while (CurrentPosition != Target) {
          CurrentPosition++;
          CurrentPosition %= 40;
          if (CurrentPosition == 0) {
-            Debt += Go();
+            temp += Go();
          }
+      }
+      if (TheBoard[CurrentPosition] >= 100) {
+         return NonPropertyCollector() + temp;
+      }
+      else {
+         return PropertyDebtCollector() + temp;
       }
       //Debug.Log(CurrentPosition);
    }
