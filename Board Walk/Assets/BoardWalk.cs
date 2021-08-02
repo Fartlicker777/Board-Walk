@@ -787,6 +787,7 @@ public class BoardWalk : MonoBehaviour {
    int Jail () {
       CurrentPosition = 10;
       Jailed = 3;
+      ConsecuativeDoubles = 0;
       Debug.LogFormat("[The Board Walk #{0}] Go to Jail. Go directly to Jail, do not pass Go, do not collect $200.", moduleId);
       if (Token == 4) {
          return 100;
