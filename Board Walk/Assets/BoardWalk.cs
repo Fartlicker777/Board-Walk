@@ -503,12 +503,12 @@ public class BoardWalk : MonoBehaviour {
                }
                else {
                   Debug.LogFormat("[The Board Walk #{0}] You have {1} more turns in Jail.", moduleId, Jailed);
-                  if (Jailed == 3) {
-                     JailedTurns[i - 1] = true;
-                  }
                   Jailed--;
                }
                JailedTurns.Add(false);
+               if (Jailed == 3) {
+                  JailedTurns[i] = true;
+               }
             }
             Debt = Math.Abs(Debt % 100000);
             FinalAnswer = "$" + Debt.ToString("00000");
