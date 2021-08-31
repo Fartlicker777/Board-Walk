@@ -730,7 +730,7 @@ public class BoardWalk : MonoBehaviour {
       switch (InitialCardsChest[CChestProg]) {
          case 0:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Go.", moduleId);
-            return Go();
+            return AdvanceUntilSomewhere(0);
          case 1:
             Debug.LogFormat("[The Board Walk #{0}] Bank error in your favor, collect $200.", moduleId, Debt);
             return -200;
@@ -821,8 +821,7 @@ public class BoardWalk : MonoBehaviour {
             return AdvanceUntilSomewhere(39);
          case 1:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Go.", moduleId);
-            CurrentPosition = 0;
-            return Go();
+            return AdvanceUntilSomewhere(0);
          case 2:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Illinois Avenue.", moduleId);
             return AdvanceUntilSomewhere(24);
