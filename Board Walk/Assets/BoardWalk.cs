@@ -420,6 +420,9 @@ public class BoardWalk : MonoBehaviour {
    #endregion
 
    void Start () {
+      /*do {
+         
+      } while (InitialCardsChest[0] != 0);*/
       InitialCards.Shuffle();
       InitialCardsChest.Shuffle();
       CardText.text = ChanceQuotes[InitialCards[0]];
@@ -496,6 +499,12 @@ public class BoardWalk : MonoBehaviour {
          }
          if (Mods != 0) {
             for (int i = 0; i < Mods; i++) {
+               /*if (i == 0) {
+                  DieRolls.Add(new int[] { 1, 1 });
+               }
+               else {
+                  DieRolls.Add(new int[] { Rnd.Range(1, 7), Rnd.Range(1, 7) });
+               }*/
                DieRolls.Add(new int[] { Rnd.Range(1, 7), Rnd.Range(1, 7) });
                Debug.LogFormat("[The Board Walk #{0}] The roll at stage {1} is {2}.", moduleId, i + 1, DieRolls[i].Join(" & "));
                if (Jailed == 0) {
@@ -904,7 +913,7 @@ public class BoardWalk : MonoBehaviour {
       while (CurrentPosition != Target) {
          CurrentPosition++;
          CurrentPosition %= 40;
-         if (CurrentPosition == 0) {
+         if (CurrentPosition == 0 && Target != 0) {
             temp += Go();
          }
       }
