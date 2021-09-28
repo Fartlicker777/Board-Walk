@@ -97,7 +97,7 @@ public class BoardWalk : MonoBehaviour {
       "Advance to\nthe nearest\nutility",
       "Bank pays\nyou dividend\nof $50",
       "Go back 3\nspaces",
-      "Go to jail. Go directly\nto jail, do not pass Go,\ndo not collect $200",
+      "Go to jail. Go directly\nto jail, do not pass Go,\ndo not collect 50",
       "Speeding fine\n$15",
       "Take a trip\nto Reading\nRailroad",
       "You have been\nelected Discord\nAdmin. Pay each\nplayer $50",
