@@ -849,7 +849,7 @@ public class BoardWalk : MonoBehaviour {
                   }
                }
             }
-            return 2 * NonPropertyCollector();
+            return Token == 2 ? 2 * NonPropertyCollector() : 25;
          case 5:
             Debug.LogFormat("[The Board Walk #{0}] Advance to the nearest Utility.", moduleId);
             if (CurrentPosition > 12 && CurrentPosition < 28) {
