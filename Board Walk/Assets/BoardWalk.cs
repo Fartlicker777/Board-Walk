@@ -566,7 +566,7 @@ public class BoardWalk : MonoBehaviour {
          ConsecuativeDoubles %= 3;
          Jailed = 3;
          Debug.LogFormat("[The Board Walk #{0}] Uh oh. You rolled three doubles.", moduleId);
-         Debt += Jail();
+         Jail();
          return;
       }
       CurrentPosition += Left + Right;
@@ -574,31 +574,26 @@ public class BoardWalk : MonoBehaviour {
          CurrentPosition++;
       }
       if (CurrentPosition > 40) {
-         Debt += Go();
+         Go();
       }
       CurrentPosition %= 40;
       switch (TheBoard[CurrentPosition] / 100) {
          case 0:
-            Debt += PropertyDebtCollector();
+            PropertyDebtCollector();
             break;
          case 1:
-            Debt += NonPropertyCollector();
+            NonPropertyCollector();
             break;
       }
       CallDebt();
    }
 
-   int PropertyDebtCollector () {
+   void PropertyDebtCollector () {
+      bool FirstTime = false;
       if (!Places[TheBoard[CurrentPosition]].Visited) {
          Places[TheBoard[CurrentPosition]].Visited = true;
          ColorVisitations[Places[TheBoard[CurrentPosition]].ColorID]++;
-      }
-      int Temp = Places[TheBoard[CurrentPosition]].Values[Places[TheBoard[CurrentPosition]].Progression];
-      if (Places[TheBoard[CurrentPosition]].DoubleCash) {
-         Temp *= 2;
-      }
-      if (Places[TheBoard[CurrentPosition]].Progression != 5) {
-         Places[TheBoard[CurrentPosition]].Progression++;
+         FirstTime = true;
       }
       switch (Places[TheBoard[CurrentPosition]].ColorID) {
          case 0:
@@ -613,8 +608,17 @@ public class BoardWalk : MonoBehaviour {
             }
             break;
       }
+      
+      int Temp = Places[TheBoard[CurrentPosition]].DoubleCash && !FirstTime ? Places[TheBoard[CurrentPosition]].Values[Places[TheBoard[CurrentPosition]].Progression] * 2 : Places[TheBoard[CurrentPosition]].Values[Places[TheBoard[CurrentPosition]].Progression];
+      if (Places[TheBoard[CurrentPosition]].Progression != 5) {
+         Places[TheBoard[CurrentPosition]].Progression++;
+      }
+
       Debug.LogFormat("[The Board Walk #{0}] You have landed on {1}. You have to pay ${2}.", moduleId, Places[TheBoard[CurrentPosition]].Name, Temp);
-      return Temp;
+      if (Places[TheBoard[CurrentPosition]].DoubleCash && !FirstTime) {
+         Debug.LogFormat("[The Board Walk #{0}] This amount was doubled.", moduleId);
+      }
+      Debt += Temp;
    }
 
    /* Board Meanings
@@ -634,85 +638,97 @@ public class BoardWalk : MonoBehaviour {
 113 = Luxury
 */
 
-   int NonPropertyCollector () {
+   void NonPropertyCollector () {
       switch (TheBoard[CurrentPosition] % 100) {
          case 0:
-            return Go();
+            Go();
+            break;
          case 1:
             Debug.LogFormat("[The Board Walk #{0}] You have landed on Community Chest.", moduleId);
-            return CommunityChest();
+            CommunityChest();
+            break;
          case 2:
             if (Token == 6) {
                Debug.LogFormat("[The Board Walk #{0}] You have landed on Income Tax, but you don't pay anything.", moduleId);
-               return 0;
+               return;
             }
             Debug.LogFormat("[The Board Walk #{0}] You have landed on Income Tax. You have to pay $200.", moduleId);
-            return 200;
+            Debt += 200;
+            break;
          case 3:
-            Debug.LogFormat("[The Board Walk #{0}] You have landed on Reading Railroad. You have to pay ${1}.", moduleId, Railroad(0));
-            return Railroad(0);
+            Railroad(0);
+            Debug.LogFormat("[The Board Walk #{0}] You have landed on Reading Railroad. You have to pay ${1}.", moduleId, (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
+            break;
          case 4:
             Debug.LogFormat("[The Board Walk #{0}] You have landed on Chance.", moduleId);
-            return Chance();
+            Chance();
+            break;
          case 5:
             Debug.LogFormat("[The Board Walk #{0}] You have landed on Just Visiting.", moduleId);
-            if (Token == 0) { return -100; }
-            else return 0;
+            if (Token == 0) { Debt += -100; }
+            break;
          case 6:
             ElectricVisited = true;
             if (Token == 5) {
                Debug.LogFormat("[The Board Walk #{0}] You have landed on Electrical Company free of charge.", moduleId);
-               return 0;
+               return;
             }
             if (WaterVisited) {
                Debug.LogFormat("[The Board Walk #{0}] You have landed on Electrical Company. You have to pay ${1}.", moduleId, 10 * (DieRolls.Last()[0] + DieRolls.Last()[1]));
-               return 10 * (DieRolls.Last()[0] + DieRolls.Last()[1]);
+               Debt += 10 * (DieRolls.Last()[0] + DieRolls.Last()[1]);
             }
             else {
                Debug.LogFormat("[The Board Walk #{0}] You have landed on Electrical Company. You have to pay ${1}.", moduleId, 4 * (DieRolls.Last()[0] + DieRolls.Last()[1]));
-               return 4 * (DieRolls.Last()[0] + DieRolls.Last()[1]);
+               Debt += 4 * (DieRolls.Last()[0] + DieRolls.Last()[1]);
             }
+            break;
          case 7:
-            Debug.LogFormat("[The Board Walk #{0}] You have landed on Pennsylvania Railroad. You have to pay ${1}.", moduleId, Railroad(1));
-            return Railroad(1);
+            Railroad(1);
+            Debug.LogFormat("[The Board Walk #{0}] You have landed on Pennsylvania Railroad. You have to pay ${1}.", moduleId, (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
+            break;
          case 8:
             Debug.LogFormat("[The Board Walk #{0}] You have landed on Free Parking.", moduleId);
             if (Token == 0) {
                Debug.LogFormat("[The Board Walk #{0}] You gain $100.", moduleId);
-               return -100;
+               Debt += -100;  
             }
-            else return 0;
+            return;
          case 9:
-            Debug.LogFormat("[The Board Walk #{0}] You have landed on B.O. Railroad. You have to pay ${1}.", moduleId, Railroad(2));
-            return Railroad(2);
+            Railroad(2);
+            Debug.LogFormat("[The Board Walk #{0}] You have landed on B.O. Railroad. You have to pay ${1}.", moduleId, (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
+            break;
          case 10:
             WaterVisited = true;
             if (Token == 5) {
                Debug.LogFormat("[The Board Walk #{0}] You have landed on Electrical Company free of charge.", moduleId);
-               return 0;
+               return;
             }
             if (ElectricVisited) {
                Debug.LogFormat("[The Board Walk #{0}] You have landed on Water Works. You have to pay ${1}.", moduleId, 10 * (DieRolls.Last()[0] + DieRolls.Last()[1]));
-               return 10 * (DieRolls.Last()[0] + DieRolls.Last()[1]);
+               Debt += 10 * (DieRolls.Last()[0] + DieRolls.Last()[1]);
             }
             else {
                Debug.LogFormat("[The Board Walk #{0}] You have landed on Water Works. You have to pay ${1}.", moduleId, 4 * (DieRolls.Last()[0] + DieRolls.Last()[1]));
-               return 4 * (DieRolls.Last()[0] + DieRolls.Last()[1]);
+               Debt += 4 * (DieRolls.Last()[0] + DieRolls.Last()[1]);
             }
+            break;
          case 11:
-            return Jail();
+            Jail();
+            break;
          case 12:
-            Debug.LogFormat("[The Board Walk #{0}] You have landed on Short Line. You have to pay ${1}.", moduleId, Railroad(3));
-            return Railroad(3);
+            Railroad(3);
+            Debug.LogFormat("[The Board Walk #{0}] You have landed on Short Line. You have to pay ${1}.", moduleId, (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
+            break;
          case 13:
             if (Token == 6) {
                Debug.LogFormat("[The Board Walk #{0}] You have landed on Luxury Tax, but you don't pay anything.", moduleId);
-               return 0;
+               return;
             }
             Debug.LogFormat("[The Board Walk #{0}] You have landed on Luxury Tax. You have to pay $100.", moduleId);
-            return 100;
+            Debt += 100;
+            break;
          default:
-            return 0;
+            return;
       }
    }
 
@@ -733,76 +749,87 @@ public class BoardWalk : MonoBehaviour {
  * Inherit +100
  */
 
-   int CommunityChest () { //CChest and Chance need to be ints because they break for no fucking reason.
+   void CommunityChest () { //CChest and Chance need to be ints because they break for no fucking reason.
       //Debug.Log(InitialCardsChest[CChestProg]);
       CChestProg = (CChestProg + 1) % 14;
       switch (InitialCardsChest[CChestProg]) {
          case 0:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Go.", moduleId);
-            return AdvanceUntilSomewhere(0);
+            AdvanceUntilSomewhere(0);
+            break;
          case 1:
             Debug.LogFormat("[The Board Walk #{0}] Bank error in your favor, collect $200.", moduleId, Debt);
-            return -200;
+            Debt += -200;
+            break;
          case 2:
             Debug.LogFormat("[The Board Walk #{0}] Doctor's fees. Pay $50.", moduleId, Debt);
-            return 50;
+            Debt += 50;
+            break;
          case 3:
             Debug.LogFormat("[The Board Walk #{0}] From sale of stock, you get $200.", moduleId, Debt);
-            return -200;
+            Debt += -200;
+            break;
          case 4:
-            return Jail();
+            Jail();
+            break;
          case 5:
             Debug.LogFormat("[The Board Walk #{0}] Holiday fund matures, collect $100.", moduleId, Debt);
-            return -100;
+            Debt += -100;
+            break;
          case 6:
             Debug.LogFormat("[The Board Walk #{0}] Income tax refund, collect $20.", moduleId, Debt);
-            return -20;
+            Debt += -20;
+            break;
          case 7:
             Debug.LogFormat("[The Board Walk #{0}] It is your birthday. Collect $10 from every player.", moduleId, Debt);
-            return -10;
+            Debt += -10;
+            break;
          case 8:
             Debug.LogFormat("[The Board Walk #{0}] Life insurance matters. Collect $100.", moduleId, Debt);
-            return -100;
+            Debt += -100;
+            break;
          case 9:
             Debug.LogFormat("[The Board Walk #{0}] Pay hospital fees of $100.", moduleId, Debt);
-            return 100;
+            Debt += 100;
+            break;
          case 10:
             Debug.LogFormat("[The Board Walk #{0}] Pay school fees of $50.", moduleId, Debt);
-            return 50;
+            Debt += 50;
+            break;
          case 11:
             Debug.LogFormat("[The Board Walk #{0}] Receive $25 consultancy fee.", moduleId, Debt);
-            return -25;
+            Debt += -25;
+            break;
          case 12:
             Debug.LogFormat("[The Board Walk #{0}] You have won second prize in a beauty contest. Collect $10.", moduleId, Debt);
-            return -10;
+            Debt += -10;
+            break;
          case 13:
             Debug.LogFormat("[The Board Walk #{0}] You inherit $100.", moduleId, Debt);
-            return -100;
+            Debt += -100;
+            break;
          default:
-            return 0;
+            return;
       }
 
    }
 
-   int Go () {
+   void Go () {
       Debug.LogFormat("[The Board Walk #{0}] You have landed on Go. Collect $200.", moduleId);
       if (Token == 1) {
          Debug.LogFormat("[The Board Walk #{0}] Receive an extra $50 for being a wheelbarrow.", moduleId);
-         return -250;
+         Debt += -250;
       }
-      return -200;
+      Debt += -200;
    }
 
-   int Jail () {
+   void Jail () {
       CurrentPosition = 10;
       Jailed = 3;
       ConsecuativeDoubles = 0;
       Debug.LogFormat("[The Board Walk #{0}] Go to Jail. Go directly to Jail, do not pass Go, do not collect $200.", moduleId);
       if (Token == 4) {
-         return 100;
-      }
-      else {
-         return 0;
+         Debt += 100;
       }
    }
 
@@ -822,21 +849,25 @@ public class BoardWalk : MonoBehaviour {
  * Collect $150   (Building loan)
  */
 
-   int Chance () {
+   void Chance () {
       ChanceProg = (ChanceProg + 1) % 13;
       switch (InitialCards[ChanceProg]) {
          case 0:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Boardwalk.", moduleId);
-            return AdvanceUntilSomewhere(39);
+            AdvanceUntilSomewhere(39);
+            break;
          case 1:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Go.", moduleId);
-            return AdvanceUntilSomewhere(0);
+            AdvanceUntilSomewhere(0);
+            break;
          case 2:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to Illinois Avenue.", moduleId);
-            return AdvanceUntilSomewhere(24);
+            AdvanceUntilSomewhere(24);
+            break;
          case 3:
             Debug.LogFormat("[The Board Walk #{0}] Advance directly to St. Charles.", moduleId);
-            return AdvanceUntilSomewhere(11);
+            AdvanceUntilSomewhere(11);
+            break;
          case 4:
             bool Temp = true;
             while (Temp) {
@@ -849,79 +880,95 @@ public class BoardWalk : MonoBehaviour {
                   }
                }
             }
-            return Token == 2 ? 2 * NonPropertyCollector() : 25;
+            if (Token == 2) {
+               NonPropertyCollector();
+               NonPropertyCollector();
+            }
+            else {
+               Debt += 25;
+            }
+            break;
          case 5:
             Debug.LogFormat("[The Board Walk #{0}] Advance to the nearest Utility.", moduleId);
             if (CurrentPosition > 12 && CurrentPosition < 28) {
-               return AdvanceUntilSomewhere(28);
+               AdvanceUntilSomewhere(28);
             }
             else {
-               return AdvanceUntilSomewhere(12);
+               AdvanceUntilSomewhere(12);
             }
-            
+            break;
          case 6:
             Debug.LogFormat("[The Board Walk #{0}] Bank pays you $50.", moduleId, Debt);
-            return -50;
+            Debt += -50;
+            break;
          case 7:
             CurrentPosition -= 3;
             CurrentPosition = ExMath.Mod(CurrentPosition, 40);
             Debug.LogFormat("[The Board Walk #{0}] Go back 3 spaces.", moduleId);
             switch (TheBoard[CurrentPosition] / 100) {
                case 0:
-                  return PropertyDebtCollector();
+                  PropertyDebtCollector();
+                  break;
                case 1:
-                  return NonPropertyCollector();
+                  NonPropertyCollector();
+                  break;
                default:
-                  return 0;
+                  return;
             }
+            break;
          case 8:
-            return Jail();
+            Jail();
+            break;
          case 9:
             Debug.LogFormat("[The Board Walk #{0}] Speeding fine of $15.", moduleId);
-            return 15;
+            Debt += 15;
+            break;
          case 10:
             Debug.LogFormat("[The Board Walk #{0}] Advance to Reading Railroad.", moduleId);
             CurrentPosition = 5;
-            return Railroad(0) + Go();
+            Railroad(0);
+            Go();
+            break;
          case 11:
             Debug.LogFormat("[The Board Walk #{0}] You have been elected Discord Admin. Pay $50 to everyone.", moduleId);
-            return 50;
+            Debt += 50;
+            break;
          case 12:
             Debug.LogFormat("[The Board Walk #{0}] Your building loan matures. Receive $150.", moduleId, Debt);
-            return -150;
+            Debt += -150;
+            break;
          default:
-            return 0;
+            return;
       }
    }
 
-   int Railroad (int Input) {
+   void Railroad (int Input) {
       if (RailroadVisitations[Input] == 0) {
          RailroadVisitations[Input]++;
       }
       //Debug.Log(RailroadVisitations.Sum());
-      if (Token == 2) { return 25; }
+      if (Token == 2) { Debt += 25; }
       //Debug.Log((int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
-      return (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum()));
+      Debt += (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum()));
    }
 
    void CallDebt () {
       Debug.LogFormat("[The Board Walk #{0}] Your debt is now ${1}.", moduleId, Debt);
    }
 
-   int AdvanceUntilSomewhere (int Target) {
-      int temp = 0;
+   void AdvanceUntilSomewhere (int Target) {
       while (CurrentPosition != Target) {
          CurrentPosition++;
          CurrentPosition %= 40;
          if (CurrentPosition == 0 && Target != 0) {
-            temp += Go();
+            Go();
          }
       }
       if (TheBoard[CurrentPosition] >= 100) {
-         return NonPropertyCollector() + temp;
+         NonPropertyCollector();
       }
       else {
-         return PropertyDebtCollector() + temp;
+         PropertyDebtCollector();
       }
       //Debug.Log(CurrentPosition);
    }
