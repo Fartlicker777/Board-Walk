@@ -657,7 +657,7 @@ public class BoardWalk : MonoBehaviour {
             break;
          case 3:
             Railroad(0);
-            Debug.LogFormat("[The Board Walk #{0}] You have landed on Reading Railroad. You have to pay ${1}.", moduleId, (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
+            Debug.LogFormat("[The Board Walk #{0}] You have landed on Reading Railroad. You have to pay ${1}.", moduleId, Token == 2 ? 25 : (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
             break;
          case 4:
             Debug.LogFormat("[The Board Walk #{0}] You have landed on Chance.", moduleId);
@@ -684,7 +684,7 @@ public class BoardWalk : MonoBehaviour {
             break;
          case 7:
             Railroad(1);
-            Debug.LogFormat("[The Board Walk #{0}] You have landed on Pennsylvania Railroad. You have to pay ${1}.", moduleId, (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
+            Debug.LogFormat("[The Board Walk #{0}] You have landed on Pennsylvania Railroad. You have to pay ${1}.", moduleId, Token == 2 ? 25 : (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
             break;
          case 8:
             Debug.LogFormat("[The Board Walk #{0}] You have landed on Free Parking.", moduleId);
@@ -695,7 +695,7 @@ public class BoardWalk : MonoBehaviour {
             return;
          case 9:
             Railroad(2);
-            Debug.LogFormat("[The Board Walk #{0}] You have landed on B.O. Railroad. You have to pay ${1}.", moduleId, (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
+            Debug.LogFormat("[The Board Walk #{0}] You have landed on B.O. Railroad. You have to pay ${1}.", moduleId, Token == 2 ? 25 : (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
             break;
          case 10:
             WaterVisited = true;
@@ -717,7 +717,7 @@ public class BoardWalk : MonoBehaviour {
             break;
          case 12:
             Railroad(3);
-            Debug.LogFormat("[The Board Walk #{0}] You have landed on Short Line. You have to pay ${1}.", moduleId, (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
+            Debug.LogFormat("[The Board Walk #{0}] You have landed on Short Line. You have to pay ${1}.", moduleId, Token == 2 ? 25 : (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
             break;
          case 13:
             if (Token == 6) {
@@ -947,9 +947,9 @@ public class BoardWalk : MonoBehaviour {
          RailroadVisitations[Input]++;
       }
       //Debug.Log(RailroadVisitations.Sum());
-      if (Token == 2) { Debt += 25; }
+      //if (Token == 2) { Debt += 25; }
       //Debug.Log((int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum())));
-      Debt += (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum()));
+      Debt += Token == 2 ? 25 : (int) (((double) 25 / 2) * (int) Math.Pow(2, RailroadVisitations.Sum()));
    }
 
    void CallDebt () {
