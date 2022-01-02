@@ -819,6 +819,7 @@ public class BoardWalk : MonoBehaviour {
       if (Token == 1) {
          Debug.LogFormat("[The Board Walk #{0}] Receive an extra $50 for being a wheelbarrow.", moduleId);
          Debt += -250;
+         return;
       }
       Debt += -200;
    }
