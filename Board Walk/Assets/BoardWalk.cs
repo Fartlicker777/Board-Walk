@@ -1090,31 +1090,42 @@ public class BoardWalk : MonoBehaviour {
       }
    }
 
-   IEnumerator TwitchHandleForcedSolve () {
-      while (!Solvable) {
-         if (NeedToJail) {
-            SubmitButton.OnInteract();
-            yield return new WaitForSeconds(.1f);
-         }
-         yield return true;
-      }
-      for (int j = 0; j < 5; j++) {
-         Switch.OnInteract();
-         yield return new WaitForSeconds(.1f);
-      }
-      for (int i = 1; i < 6; i++) {
-         while (SubmissionTexts[5].text != FinalAnswer[i].ToString()) {
-            Screen.OnInteract();
-            yield return new WaitForSeconds(.1f);
-         }
-         if (i != 5) {
+   void TwitchHandleForcedSolve () {
+        StartCoroutine(HandleForceSolve());
+   }
+
+    IEnumerator HandleForceSolve()
+    {
+        while (!Solvable)
+        {
+            if (NeedToJail)
+            {
+                SubmitButton.OnInteract();
+                yield return new WaitForSeconds(.1f);
+            }
+            yield return null;
+        }
+        for (int j = 0; j < 5; j++)
+        {
             Switch.OnInteract();
             yield return new WaitForSeconds(.1f);
-         }
-      }
-      SubmitButton.OnInteract();
-      yield return null;
-   }
+        }
+        for (int i = 1; i < 6; i++)
+        {
+            while (SubmissionTexts[5].text != FinalAnswer[i].ToString())
+            {
+                Screen.OnInteract();
+                yield return new WaitForSeconds(.1f);
+            }
+            if (i != 5)
+            {
+                Switch.OnInteract();
+                yield return new WaitForSeconds(.1f);
+            }
+        }
+        SubmitButton.OnInteract();
+        yield return null;
+    }
 }
 
 #endregion
