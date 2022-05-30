@@ -881,7 +881,7 @@ public class BoardWalk : MonoBehaviour {
                   }
                }
             }
-            if (Token == 2) {
+            if (Token != 2) {
                NonPropertyCollector();
                NonPropertyCollector();
             }
