@@ -5269,7 +5269,7 @@ MonoBehaviour:
   - {fileID: 114770364101072048}
   - {fileID: 114934027317644594}
   IsPassThrough: 0
-  ChildRowLength: 0
+  ChildRowLength: 2
   Highlight: {fileID: 114570430299588062}
   SelectableColliders: []
   DefaultSelectableIndex: 0
