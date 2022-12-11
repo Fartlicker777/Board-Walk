@@ -106,7 +106,7 @@ public class BoardWalk : MonoBehaviour {
    string[] CChestQuotes = {
       "Advance to\nGo",
       "Bank error in\nyour favor.\nCollect $200",
-      "Doctor's fees.\nPay $200",
+      "Doctor's fees.\nPay $50",
       "From sale of\nstock you\nget $200",
       "Go to jail. Go directly\nto jail, do not pass Go,\ndo not collect $200",
       "Holiday fund\nmatures.\nReceive $100",
