@@ -97,7 +97,7 @@ public class BoardWalk : MonoBehaviour {
       "Advance to\nthe nearest\nutility",
       "Bank pays\nyou dividend\nof $50",
       "Go back 3\nspaces",
-      "Go to jail. Go directly\nto jail, do not pass Go,\ndo not collect 50",
+      "Go to jail. Go directly\nto jail, do not pass Go,\ndo not collect $200",
       "Speeding fine\n$15",
       "Take a trip\nto Reading\nRailroad",
       "You have been\nelected Discord\nAdmin. Pay each\nplayer $50",
@@ -325,27 +325,31 @@ public class BoardWalk : MonoBehaviour {
       StageIndicator.text = "";
       ChanceIndex = 0;
       CChestIndex = 0;
-      if (UpDownSwitch[0].activeSelf) {
-         for (int i = 0; i < 13; i++) {
-            StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true, true));
-            while (Animating) {
-               yield return null;
-            }
-            ChanceIndex++;
-            ChanceIndex %= ChanceQuotes.Length;
-            yield return new WaitForSeconds(1f);
-         }
+      if (!UpDownSwitch[0].activeSelf) {
+         UpDownSwitch[0].gameObject.SetActive(true);
+         Audio.PlaySoundAtTransform("flip", transform);
+         UpDownSwitch[1].gameObject.SetActive(false);
       }
-      else {
-         for (int i = 0; i < 14; i++) {
-            DisplayText(CChestQuotes[InitialCardsChest[i]], false, true);
-            while (Animating) {
-               yield return null;
-            }
-            CChestIndex++;
-            CChestIndex %= CChestQuotes.Length;
-            yield return new WaitForSeconds(1f);
+      for (int i = 0; i < 13; i++) {
+         StartCoroutine(DisplayText(ChanceQuotes[InitialCards[ChanceIndex]], true, true));
+         while (Animating) {
+            yield return null;
          }
+         ChanceIndex++;
+         ChanceIndex %= ChanceQuotes.Length;
+         yield return new WaitForSeconds(1f);
+      }
+      UpDownSwitch[0].gameObject.SetActive(false);
+      Audio.PlaySoundAtTransform("flip", transform);
+      UpDownSwitch[1].gameObject.SetActive(true);
+      for (int i = 0; i < 14; i++) {
+         StartCoroutine(DisplayText(CChestQuotes[InitialCardsChest[i]], false, true));
+         while (Animating) {
+            yield return null;
+         }
+         CChestIndex++;
+         CChestIndex %= CChestQuotes.Length;
+         yield return new WaitForSeconds(1f);
       }
       InputSubmission = 0;
       CardText.text = "";
@@ -874,6 +878,9 @@ public class BoardWalk : MonoBehaviour {
             while (Temp) {
                CurrentPosition++;
                CurrentPosition %= 40;
+               if (CurrentPosition == 0) {
+                  Go();
+               }
                if (TheBoard[CurrentPosition] / 100 == 1) {
                   if (TheBoard[CurrentPosition] % 100 == 3 || TheBoard[CurrentPosition] % 100 == 7 || TheBoard[CurrentPosition] % 100 == 9 || TheBoard[CurrentPosition] % 100 == 12) {
                      Debug.LogFormat("[The Board Walk #{0}] Advance to the nearest railroad. Pay twice the rental to which they are otherwise entitled.", moduleId);
